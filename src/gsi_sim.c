@@ -46,6 +46,8 @@
 #define MAX_LOC_NAME_LEN 500
 #define MAX_POP_NAME_LENGTH 5000
 #define MAX_FILE_NAME_LENGTH 5000
+#define MAX_POST_PRED_RAN_FILES 50
+
 
 /* a structure to hold information that applies to lots of entities */
 typedef struct {
@@ -226,6 +228,14 @@ typedef enum {
 } Method;
 
 
+typedef struct {
+	int NumFiles;  /* number of files with posterior samples of sample sizes */
+	int *N;   /* number of entries read from each file */
+	int **V;  /* V[i] is an array of the values sampled from file i */
+	char **Suf;  /* the suffixes to be used for the different files */
+} pred_ran_stuff;
+
+
 
 
 /* a global variable or two */
@@ -238,16 +248,17 @@ int gBaselinePairLocusLimit = -1;  /* number of non missing loci required to ent
 int gBaselinePairMismatchLimit = -1;
 int gMixturePairLocusLimit = -1;  /* number of non missing loci required to entertain a pair in the FindCloseMatchers function.  If -1 it means don't find close matchers in Mixture */
 int gMixturePairMismatchLimit = -1;
-
+pred_ran_stuff *gPredRan_p=NULL;
 
 
 /* prototypes */
+int *SlurpPostPredRanFile(char *File, int *n);
 void ReadLocFile(pop_struct **P, int L, char *FileName);
 pop_struct *InitPopStruct(int I);
 void SimInd(int J, int N, pop_struct **Pops, pop_struct **SimPops, double *Outs, Method Meth);
 int GetGSI_Options(pop_struct **P, int argc, char *argv[], double **TruePi, int *INDS, int *MIXES, 
 	int *MIXSIZE, Method *Meth, struct IndCollection **Blines, struct IndCollection **Mixture, struct IndCollection **Holdout, int *SelfAss, int **FixedNums, int *NoEM, int *ProperBayesWayReps,
-	int *NumMixtureLoglSimReps, int *NumBaselinLoglSimReps, int *DumpMixLoglFile, int *DumpBaselineLoglFile,  BayesianOpts **BayesOpts, int **PostPredNs, int *NumPredPostNs);
+	int *NumMixtureLoglSimReps, int *NumBaselinLoglSimReps, int *DumpMixLoglFile, int *DumpBaselineLoglFile,  BayesianOpts **BayesOpts, int **PostPredNs, int *NumPredPostNs, char ***PostPredRanFiles, int *NumPredRanFiles, char ***PostPredRanSuffixes);
 void EM_Find_Pi_MLE(double **M, int N, int C, double *SP, double *Pi, double TOL);
 double PairwiseFst(pop_struct *A, pop_struct *B);
 void StraightUpSim(int INDS, int NumPops, pop_struct **Pops, int NumSimPops, pop_struct **SimPops, Method Meth, double *TruePi);
@@ -281,9 +292,44 @@ int IdxOfString(char *StrArray[], int n, char Name[]);
 reporting_unit_info* GatherReportingUnitData(char *RepUFile, struct IndCollection* B);
 FILE *OpenTraceFile(const char *FileName, const char *Comment, struct IndCollection *Baselines, BayesianOpts *BO, reporting_unit_info *RU, int interval);
 void DoAndPrintPostPredSampling(int NumPredPostNs, int *PredPostNs, double *Pi, int NumPops, reporting_unit_info *RU, int step, FILE **popf, FILE **repf);
+void DoAndPrintPostPredRansSampling(pred_ran_stuff *prs, double *Pi, int NumPops, reporting_unit_info *RU, int step, FILE **popf, FILE **repf);
 void ComputeGSISample_bayesian(struct IndCollection *Baselines, struct IndCollection *TheMixture, BayesianOpts *BO, reporting_unit_info *RU, int NumPredPostNs, int *PostPredNs);
 void FprintPis(struct IndCollection *Baselines, const char *PopFileName, reporting_unit_info *RU, const char *RepFileName);
 void FindCloseMatchers(struct IndCollection *C, int S, int NM,  char *outfile_name);
+
+
+
+/* slurp the ints out of a PredRan file.  Return them in an array.  Also,
+ send back n --- the number of elements in the returned array */
+int *SlurpPostPredRanFile(char *File, int *n) 
+{
+	int i=0, junk;
+	FILE *in;
+	int *ret;
+	
+	if( (in=fopen(File,"r"))==NULL) {
+		fprintf(stderr, "Failed to open file %s to read pred rans stuff.  Exiting!\n\n", File);
+		exit(1);
+	}
+	while(!feof(in)) {
+		fscanf(in," %d", &junk);
+		i++;
+	}
+	ret = (int *)calloc(i, sizeof(int));
+	*n = i-1;
+	rewind(in);
+	i=0;
+	while(!feof(in)) {
+		fscanf(in," %d", &(ret[i]));
+		i++;
+	}
+	if(i != (*n)+1) {
+		fprintf(stderr, "Bad News!! The second time through file %s we read %d instead of %d items. Exiting\n\n", File, i, (*n));
+		exit(1);
+	}
+	return(ret);
+	
+}
 
 int main(int argc, char *argv[]) 
 {
@@ -305,24 +351,43 @@ int main(int argc, char *argv[])
 	int DumpMixLoglFile=0, DumpBaselineLoglFile=0;  /*  flags as to whether the histograms of the the LogL simulations should be dumped to a text file */
 	BayesianOpts *BayesOpts;
 	int *PredPostNs, NumPredPostNs;
+	char **PostPredRanFiles;
+	char **PostPredRanSuffixes;
+	int NumPredRanFiles=0;
+	pred_ran_stuff PRS;
+	
+	
 	
 		
 	/* some em_opts defaults for now */
 	EM_Opts.MaxSteps=1000;
 	EM_Opts.MinSteps=50;
 	EM_Opts.tol=.000001;
+	PRS.NumFiles=0;
 	
-	
-	
+	gPredRan_p = &(PRS);  /* make this global pointer so I don't have to pass it into functions way down the road */
 	
 	
 	/* get all the inputs */
 	NumPops = GetGSI_Options(Pops, argc, argv, &TruePi, &INDS, &MIXES, &MIXSIZE, &Meth, &Baselines, &TheMixture,&TheHoldout, &SelfAssign, &FixedNums, &NoEM, &ProperBayesWayReps,&NumMixtureLoglSimReps,
-							 &NumBaselinLoglSimReps, &DumpMixLoglFile, &DumpBaselineLoglFile, &BayesOpts, &PredPostNs, &NumPredPostNs);
+							 &NumBaselinLoglSimReps, &DumpMixLoglFile, &DumpBaselineLoglFile, &BayesOpts, &PredPostNs, &NumPredPostNs, &PostPredRanFiles, &NumPredRanFiles, &PostPredRanSuffixes);
 	
 		
 	for(i=0;i<NumPredPostNs;i++)  {
 		printf("PRED POST: %d  %d\n",i,PredPostNs[i]);
+	}
+	
+	/* down here we process the Pred Rans Stuff */
+	if(NumPredRanFiles) {
+		PRS.NumFiles = NumPredRanFiles;
+		PRS.V = (int **)calloc(NumPredRanFiles, sizeof(int *));
+		PRS.N = (int *)calloc(NumPredRanFiles, sizeof(int));
+		PRS.Suf = PostPredRanSuffixes;
+		for(i=0;i<NumPredRanFiles;i++)  {
+			printf("PRED_POST_RANS: Preparing to read file %s tied to suffix %s.  File %d of %d\n",PostPredRanFiles[i], PostPredRanSuffixes[i], i+1, NumPredRanFiles);
+			PRS.V[i] = SlurpPostPredRanFile(PostPredRanFiles[i],  &(PRS.N[i]) );
+			printf("PRED_POST_RANS: Extracted %d integers [%d, %d, %d, ..., %d, %d] from that file!\n", PRS.N[i], PRS.V[i][0], PRS.V[i][1], PRS.V[i][2], PRS.V[i][PRS.N[i]-2], PRS.V[i][PRS.N[i]-1]);
+		}
 	}
 	
 
@@ -700,6 +765,60 @@ void DoAndPrintPostPredSampling(int NumPredPostNs, int *PredPostNs, double *Pi, 
 }
 
 
+
+
+
+/* just a function to do the posterior predictive sampling over allocations of other fish with no genotypes.  
+ This prints the results to the files whose handles are in the arrays of file handles.  
+ 
+ If RU is non-null then it takes each realization with the pops and summarizes them into reporting units, too.
+ 
+ This version uses the files of sample sizes so that we can propagate uncertainty in sample sizes too.
+ */
+void DoAndPrintPostPredRansSampling(pred_ran_stuff *prs, double *Pi, int NumPops, reporting_unit_info *RU, int step, FILE **popf, FILE **repf)
+{
+	int i,j;
+	int PredZSum_pop[MAX_POPS], PredZSum_rep[MAX_POPS];
+	int TheExN;
+	
+	for(i=0;i<prs->NumFiles;i++)  {
+		/* first we sample from the number that we want to expand to: */
+		TheExN = prs->V[i][ UniformRV(0, prs->N[i]-1) ];
+		
+		/* second simulate the numbers in each population */
+		D_MultinomialRV(TheExN, Pi ,NumPops, PredZSum_pop);
+		
+		/* then print those to the appropriate output file */
+		fprintf(popf[i],"%d",step);
+		for(j=0;j<NumPops;j++)  {
+			fprintf(popf[i],"\t%d", PredZSum_pop[j]);
+		}
+		fprintf(popf[i],"\n");
+		
+		/* then, if RU is non-null, agglomerate them into reporting units and print those too */
+		if(RU) {
+			for(j=0;j<RU->NumRepUnits;j++)  {  /* initialize to accumulate a sum */
+				PredZSum_rep[j] = 0;
+			}
+			for(j=0;j<NumPops;j++)  {
+				PredZSum_rep[RU->RepUnitOfPops[j]] += PredZSum_pop[j];
+			}
+			fprintf(repf[i],"%d",step);
+			for(j=0;j<RU->NumRepUnits;j++)  {  /* initialize to accumulate a sum */
+				fprintf(repf[i],"\t%d",PredZSum_rep[j]);
+			}
+			fprintf(repf[i],"\n");
+		}
+		
+	}
+	
+}
+
+
+
+
+
+
 /* a little function to open files and write a few things in them for the traces.  If RU is not NULL then it 
  sets the headers up for Reporting units.  Otherwise it does it for the populations.  */
 FILE *OpenTraceFile(const char *FileName, const char *Comment, struct IndCollection *Baselines, BayesianOpts *BO, reporting_unit_info *RU, int interval)
@@ -772,7 +891,8 @@ void ComputeGSISample_bayesian(struct IndCollection *Baselines, struct IndCollec
 	FILE *repPi_tracef;
 	FILE **PostPredFiles_pop;
 	FILE **PostPredFiles_rep;
-	
+	FILE **PostPredRanFiles_pop;
+	FILE **PostPredRanFiles_rep;	
 	
 	PopPis = DvalVector(0,P,0.0,1.0,.01);
 	if(RU!=NULL) {
@@ -815,6 +935,26 @@ void ComputeGSISample_bayesian(struct IndCollection *Baselines, struct IndCollec
 			}
 		}
 	}
+	
+	if(BO->ZSumTraceInterval>0 && gPredRan_p->NumFiles>0) {   /* open up files for output if we have the Post Pred Rans samples from the posteriors to put in there */
+		
+		/* memory allocation for file handles */
+		PostPredRanFiles_pop = (FILE **)calloc(gPredRan_p->NumFiles, sizeof(FILE *));
+		if(RU) {
+			PostPredRanFiles_rep = (FILE **)calloc(gPredRan_p->NumFiles, sizeof(FILE *));
+		}
+		for(i=0;i<gPredRan_p->NumFiles;i++)  { char temp[3000];
+			sprintf(temp,"pop_pred_post_draws_%s.txt",gPredRan_p->Suf[i]);
+			PostPredRanFiles_pop[i] = OpenTraceFile(temp, "trace file of population allocation draws from the posterior predictive.", Baselines, BO, NULL, BO->ZSumTraceInterval);
+			if(RU) {
+				sprintf(temp,"rep_unit_pred_post_draws_%s.txt",gPredRan_p->Suf[i]);
+				PostPredRanFiles_rep[i] = OpenTraceFile(temp, "trace file of reporting unit allocation draws from the posterior predictive.", Baselines, BO, RU, BO->ZSumTraceInterval);
+			}
+		}
+	}
+	
+	
+	
 	
 	/* first, we allocate memory to the Pi vector.  This is silly here, I am setting myself up
 	 for a memory leak, but I am going to just allocate to it, whether it needs it or not.  We also will initialize it
@@ -979,6 +1119,10 @@ void ComputeGSISample_bayesian(struct IndCollection *Baselines, struct IndCollec
 		/* and here is a little function that does the sampling of zsums from the posterior predictive for allocations, and then prints those to the files for those */
 		if(BO->ZSumTraceInterval>0 && NumPredPostNs>0 && steps % BO->ZSumTraceInterval==0) {
 			DoAndPrintPostPredSampling(NumPredPostNs, PredPostNs, Pi, Baselines->NumPops, RU, steps, PostPredFiles_pop, PostPredFiles_rep);
+		}
+		/* and here is the same for the Pred Rans Samp version */
+		if(BO->ZSumTraceInterval>0 && gPredRan_p->NumFiles>0 && steps % BO->ZSumTraceInterval==0) {
+			DoAndPrintPostPredRansSampling(gPredRan_p, Pi, Baselines->NumPops, RU, steps, PostPredRanFiles_pop, PostPredRanFiles_rep);
 		}
 	}
 
@@ -3741,7 +3885,7 @@ reporting_unit_info* GatherReportingUnitData(char *RepUFile, struct IndCollectio
 
 int GetGSI_Options(pop_struct **P, int argc, char *argv[], double **TruePi, int *INDS, int *MIXES, 
 	int *MIXSIZE, Method *Meth, struct IndCollection **Blines, struct IndCollection **Mixture, struct IndCollection **Holdout, int *SelfAss, int **FixedNums, int *NoEM, int *ProperBayesWayReps,
-	int *NumMixtureLoglSimReps, int *NumBaselinLoglSimReps, int *DumpMixLoglFile, int *DumpBaselineLoglFile, BayesianOpts **BayesOpts, int **PostPredNs, int *NumPredPostNs)
+	int *NumMixtureLoglSimReps, int *NumBaselinLoglSimReps, int *DumpMixLoglFile, int *DumpBaselineLoglFile, BayesianOpts **BayesOpts, int **PostPredNs, int *NumPredPostNs, char ***PostPredRanFiles, int *NumPredRanFiles, char ***PostPredRanSuffixes)
 {
 	int i;
 	char locfilename[10000];
@@ -3795,6 +3939,7 @@ int GetGSI_Options(pop_struct **P, int argc, char *argv[], double **TruePi, int 
 		zsum_trace_interval_f=0,
 		indiv_trace_interval_f=0,
 		post_pred_ns_f=0,
+		post_pred_rando_samp_ns_f=0,
 		baseline_close_matchers_f=0,
 		mixture_close_matchers_f=0;
 	int CurrentPop=0; 
@@ -4303,8 +4448,37 @@ Every population must be put into a reporting unit. The program will exit with a
 			*NumPredPostNs = NumArgs;
 		}	
 	}
+	if(MULT_USE_OPTION(
+			  post_pred_rando_samp_ns_f,
+			  ,
+			  post-pred-ran-ns,
+			  S1 S2,
+			  Variable size of samples to draw population allocations from the posterior predictive,
+			  This is an extension of the post-pred-ns option.  In this case\054 we imagine that we are uncertain
+			  about how many fish were actually sampled in the fishery in the first place. For example\054 maybe we
+			  have a posterior sample of the number sampled in the fishery and want to incorporate that uncertainty.
+			  With this option you can include a sample from the posterior in a file that contains nothing but integers
+			  that are that sample.  S1 is the name you want for the YYY part int the output file names pop_pred_post_draws_YYY.txt
+			  and rep_unit_post_pred_draws_YYY.txt.   S2 is the path to the file that includes the sample from the
+			  posterior.  This option can be used MAX_POST_PRED_RAN_FILES times so that you can expand up to different sample sizes
+			  that might reflect different posteriors etc.  MAX_POST_PRED_RAN_FILES is set to 50 at the moment.,
+			  MAX_POST_PRED_RAN_FILES
+  ) ) {  
+	   int i;
+	   if(ARGS_EQ(2)) {
+		   i = (*NumPredRanFiles)++;
+		   if(i==0) {
+			   (*PostPredRanFiles) = (char **)calloc(MAX_POST_PRED_RAN_FILES, sizeof(char *)); 
+			   (*PostPredRanSuffixes) = (char **)calloc(MAX_POST_PRED_RAN_FILES, sizeof(char *));
+		   }
+		   (*PostPredRanFiles)[i] = (char *)calloc(MAX_FILE_NAME_LENGTH, sizeof(char));
+		   (*PostPredRanSuffixes)[i] = (char *)calloc(MAX_FILE_NAME_LENGTH, sizeof(char));
+		   GET_STR((*PostPredRanSuffixes)[i]);
+		   GET_STR((*PostPredRanFiles)[i]);
+	   }
+	}
 	
-	
+
 		
 		
 		if(__OptCommentLevel > 0) {
