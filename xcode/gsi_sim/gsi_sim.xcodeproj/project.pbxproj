@@ -1,0 +1,300 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 45;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0E5B0114161F8C710087C6DE /* ECA_MemAlloc.c in Sources */ = {isa = PBXBuildFile; fileRef = 0E5B00F9161F8C710087C6DE /* ECA_MemAlloc.c */; };
+		0E5B0119161F8C710087C6DE /* ECA_print.c in Sources */ = {isa = PBXBuildFile; fileRef = 0E5B0103161F8C710087C6DE /* ECA_print.c */; };
+		0E5B011A161F8C710087C6DE /* ECA_ReadData.c in Sources */ = {isa = PBXBuildFile; fileRef = 0E5B0105161F8C710087C6DE /* ECA_ReadData.c */; };
+		0E5B011B161F8C710087C6DE /* ECA_utilities.c in Sources */ = {isa = PBXBuildFile; fileRef = 0E5B0107161F8C710087C6DE /* ECA_utilities.c */; };
+		0E5B011C161F8C710087C6DE /* MathStatRand.c in Sources */ = {isa = PBXBuildFile; fileRef = 0E5B0109161F8C710087C6DE /* MathStatRand.c */; };
+		0E5B011D161F8C710087C6DE /* MCTypesEtc.c in Sources */ = {isa = PBXBuildFile; fileRef = 0E5B010B161F8C710087C6DE /* MCTypesEtc.c */; };
+		0E5B011E161F8C710087C6DE /* linpack.c in Sources */ = {isa = PBXBuildFile; fileRef = 0E5B010F161F8C710087C6DE /* linpack.c */; };
+		0E5B011F161F8C710087C6DE /* com.c in Sources */ = {isa = PBXBuildFile; fileRef = 0E5B0111161F8C710087C6DE /* com.c */; };
+		0E5B0120161F8C710087C6DE /* ranlib.c in Sources */ = {isa = PBXBuildFile; fileRef = 0E5B0112161F8C710087C6DE /* ranlib.c */; };
+		0E5B0124161F8C940087C6DE /* gsi_sim.c in Sources */ = {isa = PBXBuildFile; fileRef = 0E5B0123161F8C940087C6DE /* gsi_sim.c */; };
+		0E5B012F161F8CD10087C6DE /* ECA_Opt.c in Sources */ = {isa = PBXBuildFile; fileRef = 0E5B012D161F8CD10087C6DE /* ECA_Opt.c */; };
+		8DD76FB00486AB0100D96B5E /* gsi_sim.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = C6A0FF2C0290799A04C91782 /* gsi_sim.1 */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		8DD76FAF0486AB0100D96B5E /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 8;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+				8DD76FB00486AB0100D96B5E /* gsi_sim.1 in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		0E5B00F9161F8C710087C6DE /* ECA_MemAlloc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ECA_MemAlloc.c; sourceTree = "<group>"; };
+		0E5B00FA161F8C710087C6DE /* ECA_MemAlloc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ECA_MemAlloc.h; sourceTree = "<group>"; };
+		0E5B0103161F8C710087C6DE /* ECA_print.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ECA_print.c; sourceTree = "<group>"; };
+		0E5B0104161F8C710087C6DE /* ECA_print.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ECA_print.h; sourceTree = "<group>"; };
+		0E5B0105161F8C710087C6DE /* ECA_ReadData.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ECA_ReadData.c; sourceTree = "<group>"; };
+		0E5B0106161F8C710087C6DE /* ECA_ReadData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ECA_ReadData.h; sourceTree = "<group>"; };
+		0E5B0107161F8C710087C6DE /* ECA_utilities.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ECA_utilities.c; sourceTree = "<group>"; };
+		0E5B0108161F8C710087C6DE /* ECA_utilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ECA_utilities.h; sourceTree = "<group>"; };
+		0E5B0109161F8C710087C6DE /* MathStatRand.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = MathStatRand.c; sourceTree = "<group>"; };
+		0E5B010A161F8C710087C6DE /* MathStatRand.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MathStatRand.h; sourceTree = "<group>"; };
+		0E5B010B161F8C710087C6DE /* MCTypesEtc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = MCTypesEtc.c; sourceTree = "<group>"; };
+		0E5B010C161F8C710087C6DE /* MCTypesEtc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MCTypesEtc.h; sourceTree = "<group>"; };
+		0E5B010F161F8C710087C6DE /* linpack.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = linpack.c; sourceTree = "<group>"; };
+		0E5B0111161F8C710087C6DE /* com.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = com.c; sourceTree = "<group>"; };
+		0E5B0112161F8C710087C6DE /* ranlib.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ranlib.c; sourceTree = "<group>"; };
+		0E5B0113161F8C710087C6DE /* ranlib.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ranlib.h; sourceTree = "<group>"; };
+		0E5B0123161F8C940087C6DE /* gsi_sim.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = gsi_sim.c; path = ../../src/gsi_sim.c; sourceTree = SOURCE_ROOT; };
+		0E5B012D161F8CD10087C6DE /* ECA_Opt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ECA_Opt.c; sourceTree = "<group>"; };
+		0E5B012E161F8CD10087C6DE /* ECA_Opt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ECA_Opt.h; sourceTree = "<group>"; };
+		8DD76FB20486AB0100D96B5E /* gsi_sim */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = gsi_sim; sourceTree = BUILT_PRODUCTS_DIR; };
+		C6A0FF2C0290799A04C91782 /* gsi_sim.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = gsi_sim.1; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		8DD76FAD0486AB0100D96B5E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		08FB7794FE84155DC02AAC07 /* gsi_sim */ = {
+			isa = PBXGroup;
+			children = (
+				0E5B0123161F8C940087C6DE /* gsi_sim.c */,
+				0E5B00F8161F8C710087C6DE /* ecalibs */,
+				0E5B010D161F8C710087C6DE /* ranlib */,
+				08FB7795FE84155DC02AAC07 /* Source */,
+				C6A0FF2B0290797F04C91782 /* Documentation */,
+				1AB674ADFE9D54B511CA2CBB /* Products */,
+			);
+			name = gsi_sim;
+			sourceTree = "<group>";
+		};
+		08FB7795FE84155DC02AAC07 /* Source */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Source;
+			sourceTree = "<group>";
+		};
+		0E5B00F8161F8C710087C6DE /* ecalibs */ = {
+			isa = PBXGroup;
+			children = (
+				0E5B012D161F8CD10087C6DE /* ECA_Opt.c */,
+				0E5B012E161F8CD10087C6DE /* ECA_Opt.h */,
+				0E5B00F9161F8C710087C6DE /* ECA_MemAlloc.c */,
+				0E5B00FA161F8C710087C6DE /* ECA_MemAlloc.h */,
+				0E5B0103161F8C710087C6DE /* ECA_print.c */,
+				0E5B0104161F8C710087C6DE /* ECA_print.h */,
+				0E5B0105161F8C710087C6DE /* ECA_ReadData.c */,
+				0E5B0106161F8C710087C6DE /* ECA_ReadData.h */,
+				0E5B0107161F8C710087C6DE /* ECA_utilities.c */,
+				0E5B0108161F8C710087C6DE /* ECA_utilities.h */,
+				0E5B0109161F8C710087C6DE /* MathStatRand.c */,
+				0E5B010A161F8C710087C6DE /* MathStatRand.h */,
+				0E5B010B161F8C710087C6DE /* MCTypesEtc.c */,
+				0E5B010C161F8C710087C6DE /* MCTypesEtc.h */,
+			);
+			name = ecalibs;
+			path = "../../eca-shared/ecalibs";
+			sourceTree = SOURCE_ROOT;
+		};
+		0E5B010D161F8C710087C6DE /* ranlib */ = {
+			isa = PBXGroup;
+			children = (
+				0E5B010E161F8C710087C6DE /* linpack */,
+				0E5B0110161F8C710087C6DE /* src */,
+			);
+			name = ranlib;
+			path = "../../eca-shared/ranlib";
+			sourceTree = SOURCE_ROOT;
+		};
+		0E5B010E161F8C710087C6DE /* linpack */ = {
+			isa = PBXGroup;
+			children = (
+				0E5B010F161F8C710087C6DE /* linpack.c */,
+			);
+			path = linpack;
+			sourceTree = "<group>";
+		};
+		0E5B0110161F8C710087C6DE /* src */ = {
+			isa = PBXGroup;
+			children = (
+				0E5B0111161F8C710087C6DE /* com.c */,
+				0E5B0112161F8C710087C6DE /* ranlib.c */,
+				0E5B0113161F8C710087C6DE /* ranlib.h */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
+		1AB674ADFE9D54B511CA2CBB /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				8DD76FB20486AB0100D96B5E /* gsi_sim */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		C6A0FF2B0290797F04C91782 /* Documentation */ = {
+			isa = PBXGroup;
+			children = (
+				C6A0FF2C0290799A04C91782 /* gsi_sim.1 */,
+			);
+			name = Documentation;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		8DD76FA90486AB0100D96B5E /* gsi_sim */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1DEB928508733DD80010E9CD /* Build configuration list for PBXNativeTarget "gsi_sim" */;
+			buildPhases = (
+				8DD76FAB0486AB0100D96B5E /* Sources */,
+				8DD76FAD0486AB0100D96B5E /* Frameworks */,
+				8DD76FAF0486AB0100D96B5E /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = gsi_sim;
+			productInstallPath = "$(HOME)/bin";
+			productName = gsi_sim;
+			productReference = 8DD76FB20486AB0100D96B5E /* gsi_sim */;
+			productType = "com.apple.product-type.tool";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		08FB7793FE84155DC02AAC07 /* Project object */ = {
+			isa = PBXProject;
+			buildConfigurationList = 1DEB928908733DD80010E9CD /* Build configuration list for PBXProject "gsi_sim" */;
+			compatibilityVersion = "Xcode 3.1";
+			developmentRegion = English;
+			hasScannedForEncodings = 1;
+			knownRegions = (
+				English,
+				Japanese,
+				French,
+				German,
+			);
+			mainGroup = 08FB7794FE84155DC02AAC07 /* gsi_sim */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				8DD76FA90486AB0100D96B5E /* gsi_sim */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		8DD76FAB0486AB0100D96B5E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0E5B0114161F8C710087C6DE /* ECA_MemAlloc.c in Sources */,
+				0E5B0119161F8C710087C6DE /* ECA_print.c in Sources */,
+				0E5B011A161F8C710087C6DE /* ECA_ReadData.c in Sources */,
+				0E5B011B161F8C710087C6DE /* ECA_utilities.c in Sources */,
+				0E5B011C161F8C710087C6DE /* MathStatRand.c in Sources */,
+				0E5B011D161F8C710087C6DE /* MCTypesEtc.c in Sources */,
+				0E5B011E161F8C710087C6DE /* linpack.c in Sources */,
+				0E5B011F161F8C710087C6DE /* com.c in Sources */,
+				0E5B0120161F8C710087C6DE /* ranlib.c in Sources */,
+				0E5B0124161F8C940087C6DE /* gsi_sim.c in Sources */,
+				0E5B012F161F8CD10087C6DE /* ECA_Opt.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		1DEB928608733DD80010E9CD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				INSTALL_PATH = /usr/local/bin;
+				PRODUCT_NAME = gsi_sim;
+			};
+			name = Debug;
+		};
+		1DEB928708733DD80010E9CD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_MODEL_TUNING = G5;
+				INSTALL_PATH = /usr/local/bin;
+				PRODUCT_NAME = gsi_sim;
+			};
+			name = Release;
+		};
+		1DEB928A08733DD80010E9CD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				GCC_C_LANGUAGE_STANDARD = c99;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PREBINDING = NO;
+				SDKROOT = macosx10.5;
+			};
+			name = Debug;
+		};
+		1DEB928B08733DD80010E9CD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				GCC_C_LANGUAGE_STANDARD = c99;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				PREBINDING = NO;
+				SDKROOT = macosx10.5;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1DEB928508733DD80010E9CD /* Build configuration list for PBXNativeTarget "gsi_sim" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1DEB928608733DD80010E9CD /* Debug */,
+				1DEB928708733DD80010E9CD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1DEB928908733DD80010E9CD /* Build configuration list for PBXProject "gsi_sim" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1DEB928A08733DD80010E9CD /* Debug */,
+				1DEB928B08733DD80010E9CD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 08FB7793FE84155DC02AAC07 /* Project object */;
+}
