@@ -47,7 +47,8 @@
 #define MAX_POP_NAME_LENGTH 5000
 #define MAX_FILE_NAME_LENGTH 5000
 #define MAX_POST_PRED_RAN_FILES 50
-
+#define MAX_MULTI_FISHERIES 100000
+#define MAX_MULTI_MIX_NAME 100
 
 /* a structure to hold information that applies to lots of entities */
 typedef struct {
@@ -258,11 +259,14 @@ pop_struct *InitPopStruct(int I);
 void SimInd(int J, int N, pop_struct **Pops, pop_struct **SimPops, double *Outs, Method Meth);
 int GetGSI_Options(pop_struct **P, int argc, char *argv[], double **TruePi, int *INDS, int *MIXES, 
 	int *MIXSIZE, Method *Meth, struct IndCollection **Blines, struct IndCollection **Mixture, struct IndCollection **Holdout, int *SelfAss, int **FixedNums, int *NoEM, int *ProperBayesWayReps,
-	int *NumMixtureLoglSimReps, int *NumBaselinLoglSimReps, int *DumpMixLoglFile, int *DumpBaselineLoglFile,  BayesianOpts **BayesOpts, int **PostPredNs, int *NumPredPostNs, char ***PostPredRanFiles, int *NumPredRanFiles, char ***PostPredRanSuffixes);
+	int *NumMixtureLoglSimReps, int *NumBaselinLoglSimReps, int *DumpMixLoglFile, int *DumpBaselineLoglFile,  BayesianOpts **BayesOpts, int **PostPredNs, int *NumPredPostNs,
+  char ***PostPredRanFiles, int *NumPredRanFiles, char ***PostPredRanSuffixes, int ***MultiFixMix, char ***MultiFixMixNames, int *NumMultiFixMixes);
 void EM_Find_Pi_MLE(double **M, int N, int C, double *SP, double *Pi, double TOL);
 double PairwiseFst(pop_struct *A, pop_struct *B);
 void StraightUpSim(int INDS, int NumPops, pop_struct **Pops, int NumSimPops, pop_struct **SimPops, Method Meth, double *TruePi);
-void MixtureSim(int INDS, int NumPops, pop_struct **Pops, int NumSimPops, pop_struct **SimPops, Method Meth, double *TruePi, int MIXSIZE,int MIXES,  struct IndCollection *Baselines, int *FixedNums);
+void MixtureSim(int INDS, int NumPops, pop_struct **Pops, int NumSimPops, pop_struct **SimPops, Method Meth, double *TruePi, 
+                int MIXSIZE,int MIXES,  struct IndCollection *Baselines, int *FixedNums,
+                const char MultiFixName[], const char *MultiFixPrefix, const char *MultiFixNameHeader);
 void PrintLossMatrix(pop_struct **P, int NumPops);
 void ExpectedLossLocL(int L, pop_struct **P, double *Pi, int NumPops);
 void PrintIndCollection(struct IndCollection *R);
@@ -355,6 +359,9 @@ int main(int argc, char *argv[])
 	char **PostPredRanSuffixes;
 	int NumPredRanFiles=0;
 	pred_ran_stuff PRS;
+  int **MultiFixMix = NULL;
+  char **MultiFixMixNames = NULL;
+  int NumMultiFixMixes = 0;
 	
 	
 	
@@ -370,9 +377,9 @@ int main(int argc, char *argv[])
 	
 	/* get all the inputs */
 	NumPops = GetGSI_Options(Pops, argc, argv, &TruePi, &INDS, &MIXES, &MIXSIZE, &Meth, &Baselines, &TheMixture,&TheHoldout, &SelfAssign, &FixedNums, &NoEM, &ProperBayesWayReps,&NumMixtureLoglSimReps,
-							 &NumBaselinLoglSimReps, &DumpMixLoglFile, &DumpBaselineLoglFile, &BayesOpts, &PredPostNs, &NumPredPostNs, &PostPredRanFiles, &NumPredRanFiles, &PostPredRanSuffixes);
-	
-		
+							 &NumBaselinLoglSimReps, &DumpMixLoglFile, &DumpBaselineLoglFile, &BayesOpts, &PredPostNs, &NumPredPostNs, &PostPredRanFiles, &NumPredRanFiles, &PostPredRanSuffixes, 
+                           &MultiFixMix, &MultiFixMixNames, &NumMultiFixMixes);
+
 	for(i=0;i<NumPredPostNs;i++)  {
 		printf("PRED POST: %d  %d\n",i,PredPostNs[i]);
 	}
@@ -600,10 +607,20 @@ int main(int argc, char *argv[])
 							before we enter the mixture sim */
 			ComputeGeneClassSelfAssign_NOSORT(Baselines, NULL);
 		}
-		MixtureSim(INDS,NumPops, Pops, NumSimPops, SimPops, Meth, TruePi, MIXSIZE, MIXES,Baselines,FixedNums);
+		MixtureSim(INDS,NumPops, Pops, NumSimPops, SimPops, Meth, TruePi, MIXSIZE, MIXES,Baselines,FixedNums, NULL, NULL, " ");
 	}
-	
-	
+
+
+  /********
+  Finally, if requested, bang out the MultiFixMix simulations
+  *********/
+  if(Meth==RESAMP_LOO_MULTILOCUS) {  /* if we are doing the shrewd method, then we need to compute all the scaled likelihoods !!but don't sort them!!
+                                      before we enter the mixture sim. Just sort of threw this down here. */
+    ComputeGeneClassSelfAssign_NOSORT(Baselines, NULL);
+  }
+  for(i=0; i<NumMultiFixMixes; i++)  {
+      MixtureSim(INDS,NumPops, Pops, NumSimPops, SimPops, Meth, TruePi, 1, 1,Baselines, MultiFixMix[i], MultiFixMixNames[i], "MULTI_FIX_MIX_", "MultiFixMixName");
+  }
 	
 	
 	SeedToFile("gsi_sim_seeds");
@@ -1036,7 +1053,7 @@ void ComputeGSISample_bayesian(struct IndCollection *Baselines, struct IndCollec
 					if(RU) RepUnitPofZs[i][ RU->RepUnitOfPops[j] ]->v += PofZ[j];
 				}
 				if(RU) for(j=0;j<RU->NumRepUnits;j++)  {
-					IncrementDval(RepUnitPofZs[i][j]); /* initialize to accumulate a sum */
+					IncrementDval(RepUnitPofZs[i][j]);
 				}
 			}
 			
@@ -2633,7 +2650,9 @@ if doing methods RESAMP_LOO_MULTILOCUS, you must have computed the posterior vec
 struct IndCollection outside of this function. 
 \todo Free memory...
 */
-void MixtureSim(int INDS, int NumPops, pop_struct **Pops, int NumSimPops, pop_struct **SimPops, Method Meth, double *TruePi, int MIXSIZE,int MIXES,  struct IndCollection *Baselines, int *FixedNums)
+void MixtureSim(int INDS, int NumPops, pop_struct **Pops, int NumSimPops, pop_struct **SimPops,
+                Method Meth, double *TruePi, int MIXSIZE,int MIXES,  struct IndCollection *Baselines, int *FixedNums,
+                const char *MultiFixName, const char *MultiFixPrefix, const char *MultiFixNameHeader)
 {
 	int inds,i,j,k,mixes,FixedCntSum=0;;
 	double **MixContainer;
@@ -2706,14 +2725,16 @@ void MixtureSim(int INDS, int NumPops, pop_struct **Pops, int NumSimPops, pop_st
 		}
 		
 		/* print the TruePi's */
-		printf("MIXFISH_TRUE_PIS: ");
-		for(i=0;i<NumPops;i++)  {
-			printf("%f ",TruePi[i]);
-		}
-		printf("\n");
+    if(TruePi != NULL) {
+      printf("%sMIXFISH_TRUE_PIS: ", MultiFixPrefix);
+      for(i=0;i<NumPops;i++)  {
+        printf("%f ",TruePi[i]);
+      }
+      printf("\n");
+    }
 		
 		/* print the actual numbers in the mixture */
-		printf("MIXFISH_ACTUAL_NUMBERS: ");
+		printf("%sMIXFISH_ACTUAL_NUMBERS: ", MultiFixPrefix);
 		for(i=0;i<NumPops;i++)  {
 			printf("%d ",Counts[i]);
 		}
@@ -2726,7 +2747,7 @@ void MixtureSim(int INDS, int NumPops, pop_struct **Pops, int NumSimPops, pop_st
 		}
 		EM_Find_Pi_MLE(MixContainer, MIXSIZE, NumPops, StartPoint, Pi, .000001);
 		
-		printf("MIXFISH_PI_MLES: ");
+		printf("%sMIXFISH_PI_MLES: ", MultiFixPrefix);
 		for(i=0;i<NumPops;i++)  {
 			printf("%f ",Pi[i]);
 		}
@@ -2734,12 +2755,12 @@ void MixtureSim(int INDS, int NumPops, pop_struct **Pops, int NumSimPops, pop_st
 		
 		
 		/* print out headers for each mixture */
-		printf("MIXFISH_NAMES_HEADER: MixRep MixIndNum  PopNo  PopName ");
+		printf("%sMIXFISH_NAMES_HEADER: %s  MixRep MixIndNum  PopNo  PopName ", MultiFixPrefix, MultiFixNameHeader);
 		for(i=0;i<NumPops;i++)  {
 			printf("%s ",Pops[i]->Name);
 		}
 		printf("\n");
-		printf("MIX_FISH_NUMBERS_HEADER: MixRep MixIndNum PopNo  PopName ");
+		printf("%sMIX_FISH_NUMBERS_HEADER: %s  MixRep MixIndNum PopNo  PopName ", MultiFixPrefix, MultiFixNameHeader);
 		for(i=0;i<NumPops;i++)  {
 			printf("Post.%d ",i+1);
 		}
@@ -2750,7 +2771,7 @@ void MixtureSim(int INDS, int NumPops, pop_struct **Pops, int NumSimPops, pop_st
 		
 		/* then print out the fish in the mixture, and record the maximum while we are at it. */
 		for(inds=0;inds<MIXSIZE;inds++) { double normo; double max; int maxi; double temp; double randoloss; double ScLikNorm;
-			printf("MIXED_FISH_INDIVS: %d  %d  %d  %s  ",mixes,inds+1,TheirPops[inds]+1, Pops[TheirPops[inds]]->Name);
+			printf("%sMIXED_FISH_INDIVS:  %s  %d  %d  %d  %s  ",MultiFixPrefix, MultiFixName, mixes,inds+1,TheirPops[inds]+1, Pops[TheirPops[inds]]->Name);
 			normo = 0.0;
 			ScLikNorm = 0.0;
 			max = -99999.9;
@@ -2785,7 +2806,12 @@ void MixtureSim(int INDS, int NumPops, pop_struct **Pops, int NumSimPops, pop_st
 		}
 
 	}
-	
+
+  /* Free the MixContainer */
+  for(inds=0;inds<MIXSIZE;inds++) {
+		free(MixContainer[inds]);
+	}
+	free(MixContainer);
 }
 
 
@@ -3885,7 +3911,8 @@ reporting_unit_info* GatherReportingUnitData(char *RepUFile, struct IndCollectio
 
 int GetGSI_Options(pop_struct **P, int argc, char *argv[], double **TruePi, int *INDS, int *MIXES, 
 	int *MIXSIZE, Method *Meth, struct IndCollection **Blines, struct IndCollection **Mixture, struct IndCollection **Holdout, int *SelfAss, int **FixedNums, int *NoEM, int *ProperBayesWayReps,
-	int *NumMixtureLoglSimReps, int *NumBaselinLoglSimReps, int *DumpMixLoglFile, int *DumpBaselineLoglFile, BayesianOpts **BayesOpts, int **PostPredNs, int *NumPredPostNs, char ***PostPredRanFiles, int *NumPredRanFiles, char ***PostPredRanSuffixes)
+	int *NumMixtureLoglSimReps, int *NumBaselinLoglSimReps, int *DumpMixLoglFile, int *DumpBaselineLoglFile, BayesianOpts **BayesOpts, int **PostPredNs, int *NumPredPostNs, char ***PostPredRanFiles, int *NumPredRanFiles, char ***PostPredRanSuffixes,
+                   int ***MultiFixMix, char ***MultiFixMixNames, int *NumMultFixMixes)
 {
 	int i;
 	char locfilename[10000];
@@ -3941,6 +3968,7 @@ int GetGSI_Options(pop_struct **P, int argc, char *argv[], double **TruePi, int 
 		post_pred_ns_f=0,
 		post_pred_rando_samp_ns_f=0,
 		baseline_close_matchers_f=0,
+    multi_fix_f=0,
 		mixture_close_matchers_f=0;
 	int CurrentPop=0; 
 	DECLARE_ECA_OPT_VARS;
@@ -4552,6 +4580,44 @@ Every population must be put into a reporting unit. The program will exit with a
 				printf("P[CurrentPop]->SimCnt set to %d.  CurrentPop= %d\n",P[CurrentPop]->SimCnt,CurrentPop);
 			}
 		}
+    if(MULT_USE_OPTION(
+      multi_fix_f,
+      ,
+      multi-fix-mix,
+      S J0 ... J_NumPops,
+      define another mixed fishery sample with fixed numbers from each population,
+      This is a fully dodgy option that I wrote to be able to do lots of mixed fishery samples of different
+         compositions and different sizes while reading in the baseline only once.  It is dodgy because it does not check
+         that you have the right number of populations while it is reading this in.  S is a unique string tag you want for 
+         the fishery and J0 is the number from population 0\054 J1 is the number from pop 1\054 and so forth.  It is super 
+                       dodgy because this does no checking to make sure you have the right number in here. If you do not have a 
+                       number for every pop in the baseline then you will likely overrun an array bound., 
+      MAX_MULTI_FISHERIES
+      )) {
+      int rem_args;
+      int cc;
+      if(ALREADY_HAS(baseline_f, -b or baseline-genotypes)) {
+        /* allocate memory if necesssary */
+        if((*MultiFixMix) == NULL) (*MultiFixMix) = (int **)calloc(MAX_MULTI_FISHERIES, sizeof(int *));
+        if((*MultiFixMixNames) == NULL) (*MultiFixMixNames) = (char**)calloc(MAX_MULTI_FISHERIES, sizeof(char *));
+        (*MultiFixMixNames)[*NumMultFixMixes] = (char *)calloc(MAX_MULTI_MIX_NAME, sizeof(char));
+        GET_STR((*MultiFixMixNames)[*NumMultFixMixes]) /* get the name of the fishery */
+        printf("Reading multi-fix-mix number %d,  Name= %s,  Numbers=  ", *NumMultFixMixes, (*MultiFixMixNames)[*NumMultFixMixes]);
+        rem_args = COUNT_ARGS;
+        if(rem_args != Baselines->NumPops) {
+          fprintf(stderr, "Error reading arguments to --multi-fix-mix invocation number %d with Name= %s.  There should be %d remaining arguments (one for each pop in the baseline.  But there are %d\n",
+                  *NumMultFixMixes, (*MultiFixMixNames)[*NumMultFixMixes], Baselines->NumPops, rem_args);
+          OPT_ERROR
+        }
+        (*MultiFixMix)[*NumMultFixMixes] = (int *)calloc(rem_args, sizeof(int));
+        for(cc=0; cc<rem_args; cc++) {
+          (*MultiFixMix)[*NumMultFixMixes][cc] = GET_INT;
+          printf(" %d", (*MultiFixMix)[*NumMultFixMixes][cc]);
+        }
+        printf("\n");
+        (*NumMultFixMixes) = (*NumMultFixMixes) + 1;
+      }
+    }
 		if(COND_REQ_OPTION(
 			mixwts_f,
 			m,
