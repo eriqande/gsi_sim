@@ -1,3 +1,12 @@
 
+# leave out the xcode build stuff
 /xcode/gsi_sim/bin/
 /xcode/gsi_sim/gsi_sim.1
+
+# I don't know what this directory is for
+/.deps/
+
+# emacs backups.  leave them out.
+*~
+
+
