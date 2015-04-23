@@ -71,6 +71,12 @@ T056350_M_9-29-2008	T056351_M_9-29-2008	0	85
 
 For more information on that do `./gsisim --help-full` and find the section on `--close-match-base`.
 
+The format of `geno-match-example-data.txt` should be pretty self evident.  It starts with the number of individuals
+and the number of loci on the first line. Then a series of locus names, one on each line, and then a 
+POP specifier with a population name after it.  Then a series of lines that each start with the individual
+ID and are followed by the loci, with two columns for each diploid locus.  Alleles must be coded as integers.
+We use A=1, C=2, G=3, and T=4 for SNPs.  Missing data at a locus is denoted with two zeroes (one for each allele).
+
 
 ## Citation
 
