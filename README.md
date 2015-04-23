@@ -11,20 +11,65 @@ markers assembled in a "genetic basline" to conduct.
 `gsi_sim` was originally written to do #2 above, but 
 later was adopted to do  #1 as well.  
 
-To make it you should be able to do:
-```
+`gsi_sim` is written in C.  To get the source code from GitHub and compile it, do this
+on the command line Unix/Linux or Mac machine (or Windows if you have set up a 
+sane development environment on it):
+```sh
+# git the repo and submodules
+git clone https://github.com/eriqande/gsi_sim.git
+cd gsi_sim/
+git submodule init
+git submodule update
+
+# make it
 ./configure
 make
 ```
-For abbreviated information on the available options do
-```
-gsi_sim --help
+
+That creates the executable `gsisim`. Once you have done that. For abbreviated information on the available options do
+```sh
+./gsisim --help
 ```
 and for compete information, try
 ```
-gsi_sim --help-full
+./gsisim --help-full
 ```
 
+
+## Using gsi_sim to find duplicate samples
+One of the ways we use `gsi_sim` in our lab is to search for samples that have identical (or
+near identical) genotypes.  Here is an example of how to do that on an example
+data set included in the repository:
+```
+time ./gsisim -b test_data/geno-match-example-data.txt  --close-match-base 8 70 | grep CLOSE_MATCH_GENOTYPES
+
+# and the output for that is :
+CLOSE_MATCH_GENOTYPES: T028958_?_10-6-2006 and T028959_?_10-6-2006 differ at 0 genotypes out of 95 non-missing loci
+CLOSE_MATCH_GENOTYPES: T056350_M_9-29-2008 and T056351_M_9-29-2008 differ at 0 genotypes out of 85 non-missing loci
+
+real	0m3.661s
+user	0m3.639s
+sys	0m0.019s
+
+``` 
+which shows that it found two pairs of samples that had identical genotypes out of about 4600 individuals,
+and that required less than 4 seconds.
+
+Output in this case also gets written to a file called `close_matches_baseline.txt` in the current 
+working directory.
+
+```sh
+# look at the output:
+cat close_matches_baseline.txt 
+
+# Pairs of fish having 8 or fewer mismatching genotypes and at least 70 loci that are non-missing in each member of the pair 
+# Each pair should be listed at most once. Indiv1 appears before Indiv2 in the data set.
+Indiv1	Indiv2	NumMismatchLoci	NumNonMissingLoci
+T028958_?_10-6-2006	T028959_?_10-6-2006	0	95
+T056350_M_9-29-2008	T056351_M_9-29-2008	0	85
+```
+
+For more information on that do `./gsisim --help-full` and find the section on `--close-match-base`.
 
 
 ## Citation
