@@ -26,7 +26,14 @@ git submodule update
 make
 ```
 
-That creates the executable `gsisim`. Once you have done that. For abbreviated information on the available options do
+If that fails, it is because I am totally lost when it comes to Autotools.  In which case, since this is
+just a single silly little C program with few dependencies, instead of doing `./configure; make` you can
+do:
+```sh
+./build_script.sh
+```
+
+The above steps should have created the executable `gsisim`. Once you have done that. For abbreviated information on the available options do
 ```sh
 ./gsisim --help
 ```
