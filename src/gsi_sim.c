@@ -1835,10 +1835,14 @@ Note, I had originally set this up so that the numerator and the denominator wer
 separately, and then divided at the end (thus speeding thing up becuase it eliminated a lot of
 floating point divides) but that leads to under/over-flow with lots of loci, so I had
 to rework that.
+ 
+ In 2015 I modified this to take logs and compute the log likelihood from everyone, and then 
+ I deal with the logls in ComputePostVector.
 
 */
 long double ProbIndFromPopR_M_Polysomic(struct IndCollection *R, ind_struct *T, int p, int LeaveOut)
 {
+#define TOO_SMALL 1e-250
 	int i,j,k;
 	int **C;  /* shorthand for the genotype, compactified */
 	double *a;  /* temporary, shorthand to get to the dirichlet pars */
@@ -1847,6 +1851,7 @@ long double ProbIndFromPopR_M_Polysomic(struct IndCollection *R, ind_struct *T, 
 	long double denom,numer,result=1.0;
 	int Pl, Xi; /* the Ploidy of each locus */
 	double Pld; /* ploidy as a double */
+    double log10_const = 0;
 	
 	/* if not doing leave out */
 	for(j=0;j<R->NumLoc;j++)  {/* cycle over loci */
@@ -1891,11 +1896,19 @@ long double ProbIndFromPopR_M_Polysomic(struct IndCollection *R, ind_struct *T, 
 				}
 				result *= numer/denom;
 			}
+            
+            // here we check to make sure that the result is not getting close to underflowing.
+            // If it is, we can pull a log out of it.  Doing this keeps us from taking logs all the time.
+            if(result < TOO_SMALL) {
+                log10_const += log10(result);
+                result = 1.0;
+            }
 		}
 	}
 
 	
-	return(result);
+	return(log10_const + log10(result));
+#undef TOO_SMALL
 }
 
 
@@ -1909,7 +1922,7 @@ long double ProbIndFromPopR_M_Polysomic(struct IndCollection *R, ind_struct *T, 
    
    If TryToLeaveOut is not zero, then this function will assume that the population index carried by T refers
    to the indices of the populations in R, and it will leave the individual out as appropriate.  Otherwise not.  
-   
+ 
 	
 */
 void ComputePostVector(struct IndCollection *R, ind_struct *T, double *Pi, int LOGLS, int TryToLeaveOut, int CorrectWayReps) 
@@ -1917,7 +1930,9 @@ void ComputePostVector(struct IndCollection *R, ind_struct *T, double *Pi, int L
 	int i;
 	double normo=0.0;
 	int LeaveOut;
-	
+    double maxLogL = -9999999999999999999999999.999;
+#define TOO_SMALL 1e-250
+    
 	/* deal with allocation if necessary */
 	if(T->posts==NULL) {
 		T->posts = (popindval *)ECA_CALLOC(R->NumPops,sizeof(popindval));
@@ -1926,7 +1941,7 @@ void ComputePostVector(struct IndCollection *R, ind_struct *T, double *Pi, int L
 			T->posts[i].DV = AllocDval(0,1,-1); /* don't bother with the histograms on these, hence the -1 for the d parameter */
 		}
 	}
-	if(LOGLS && T->logls==NULL) {
+	if(T->logls==NULL) {
 		T->logls = (popindval *)ECA_CALLOC(R->NumPops,sizeof(popindval));
 	}
 	
@@ -1934,7 +1949,7 @@ void ComputePostVector(struct IndCollection *R, ind_struct *T, double *Pi, int L
 	for(i=0;i<R->NumPops;i++)  {
 		LeaveOut = TryToLeaveOut && T->PopNum==i;
 		if(CorrectWayReps==0) {
-			T->posts[i].val =  Pi ?  Pi[i] *  ProbIndFromPopR_M_Polysomic(R,T,i, LeaveOut)  : ProbIndFromPopR_M_Polysomic(R,T,i,LeaveOut);
+            T->logls[i].val = ProbIndFromPopR_M_Polysomic(R,T,i, LeaveOut);
 		}
 		else {
 			if(Pi!=NULL) {
@@ -1945,22 +1960,38 @@ void ComputePostVector(struct IndCollection *R, ind_struct *T, double *Pi, int L
 				fprintf(stderr,"Sorry! Currently can't do --proper-bayes > 0 and also TryToLeaveOut in ComputePostVector. Exiting\n");
 				exit(1);
 			}
-			T->posts[i].val = ProbIndFromPop_P_Disomic(R,T,i,0);
+			T->logls[i].val = log10(ProbIndFromPop_P_Disomic(R,T,i,0));
 		}
 		T->posts[i].pop = i;
-		normo += T->posts[i].val;
-		if(LOGLS) {
-			T->logls[i].val =  Pi ? log10(T->posts[i].val/Pi[i])   :   log10(T->posts[i].val);  /* Here, I  divide Pi[i] out of it if Pi is not NULL, so I can get the raw log likelihood! */
-			T->logls[i].pop = i;
-		}
+        T->logls[i].pop = i;
+        
+        if(T->logls[i].val > maxLogL) {
+            maxLogL = T->logls[i].val;
+        }
 	}
-	
-	/* in the end, we normalize all the posts */
-	for(i=0;i<R->NumPops;i++)  {
-		T->posts[i].val /= normo;
+    
+    // now we compute the posterior vectors from the logls, pulling a constant out from each one beforehand
+    // and in the end, we normalize all the posteriors */
+    normo = 0.0;
+    for(i=0;i<R->NumPops;i++)  { double temp;
+        if(T->logls[i].val - maxLogL < log10(TOO_SMALL)) {
+            temp = 0.0;
+        }
+        else {
+            temp = pow(10, T->logls[i].val - maxLogL);
+        }
+        
+        T->posts[i].val = Pi ? temp * Pi[i] : temp;
+        normo += T->posts[i].val;
 	}
+    for(i=0;i<R->NumPops;i++) {
+        T->posts[i].val /= normo;
+    }
+#undef TOO_SMALL
 		
 }
+
+
 
 int CmpPopIndByVal(const void *a, const void *b)
 {
