@@ -1,3 +1,9 @@
+bin=gsi_sim-$(uname)
+
+echo "Compiling up executable $bin"
+echo
+
+
 CFLAGS="-I./eca-shared/ecalibs \
 	 -I./eca-shared/ranlib/src"
 
@@ -14,5 +20,5 @@ gsisim_SOURCES="./eca-shared/ranlib/linpack/linpack.c \
     ./src/gsi_sim.c"
 
 
-gcc -O3 $CFLAGS  $gsisim_SOURCES -o gsisim -lm
+(gcc -O3 $CFLAGS  $gsisim_SOURCES -o $bin -lm) && (echo; echo; echo "Successfully compiled the executable $bin"; echo)
 
