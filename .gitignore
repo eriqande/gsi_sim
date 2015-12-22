@@ -9,3 +9,4 @@ config.log
 config.status
 .deps/
 close_matches_baseline.txt
+.Rproj.user
