@@ -63,7 +63,7 @@ library(stringr)
 
 AssignmentTally <- read.table("self-ass-results.txt", header = TRUE) %>%
   tbl_df %>%
-  mutate(FromPop = paste(str_split_fixed(x$ID, "_", 3)[,1], str_split_fixed(x$ID, "_", 3)[,2], sep ="_")) %>%
+  mutate(FromPop = paste(str_split_fixed(ID, "_", 3)[,1], str_split_fixed(ID, "_", 3)[,2], sep ="_")) %>%
   group_by(FromPop, TopPop) %>%
   tally %>%
   arrange(FromPop, desc(n))
