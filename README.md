@@ -35,15 +35,19 @@ and for compete information, try
 ```
 ./gsi_sim-Darwin --help-full
 ```
-replacing `Darwin` with `Linux` if you are on a Linux box.
+replacing `Darwin` with `Linux` if you are on a Linux box and with `MINGW32_NT-6.1` if you are
+on a Windows box.
 
 ## Executables
 
-The executable files `gsi_sim-Darwin` and `gsi_sim-Linux` are provided as a courtesy, but are not guaranteed to have been compiled up from the latest commit. For that you should compile it up yourself (or see when the exectuable was last committed).
+The executable files `gsi_sim-Darwin`, `gsi_sim-Linux`, `gsi_sim-MINGW32_NT-6.1` are provided as a courtesy, but are not guaranteed to have been compiled up from the latest commit. For that you should compile it up yourself (or see when the exectuable was last committed).
+`gsi_sim-MINGW32_NT-6.1` is compiled by Eric using MINGW on a PC running as a virtual machine using VirtualBox on his Mac.  `gsi_sim-Linux` is compiled by Eric on our Ubuntu server at the lab.  `gsi_sim-Darwin` is compiled by Eric on his Mac laptop.
 
 ## Some Simple Examples
 In the following examples, if you are running this on Linux, then you should replace
-`gsi_sim-Darwin` with `gsi_sim-Linux`.
+`gsi_sim-Darwin` with `gsi_sim-Linux`. If you are trying to run it on Windows then
+replace `Darwin` with `MINGW32_NT-6.1` but be aware that you probably can't do the
+processing of the output files via sed and awk on Windows, unless you have set that up.
 
 ### Self-assignment of baseline samples
 Using a leave-one-out procedure, take all the baseline samples and assign them back to populations at the Unix command line.
