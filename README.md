@@ -42,6 +42,8 @@ replacing `Darwin` with `Linux` if you are on a Linux box.
 The executable files `gsi_sim-Darwin` and `gsi_sim-Linux` are provided as a courtesy, but are not guaranteed to have been compiled up from the latest commit. For that you should compile it up yourself (or see when the exectuable was last committed).
 
 ## Some Simple Examples
+In the following examples, if you are running this on Linux, then you should replace
+`gsi_sim-Darwin` with `gsi_sim-Linux`.
 
 ### Self-assignment of baseline samples
 Using a leave-one-out procedure, take all the baseline samples and assign them back to populations at the Unix command line.
