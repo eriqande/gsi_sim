@@ -181,6 +181,8 @@
 /* Begin PBXProject section */
 		08FB7793FE84155DC02AAC07 /* Project object */ = {
 			isa = PBXProject;
+			attributes = {
+			};
 			buildConfigurationList = 1DEB928908733DD80010E9CD /* Build configuration list for PBXProject "gsi_sim" */;
 			compatibilityVersion = "Xcode 3.1";
 			developmentRegion = English;
@@ -233,6 +235,7 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				INSTALL_PATH = /usr/local/bin;
 				PRODUCT_NAME = gsi_sim;
+				SDKROOT = macosx10.9;
 			};
 			name = Debug;
 		};
@@ -244,6 +247,7 @@
 				GCC_MODEL_TUNING = G5;
 				INSTALL_PATH = /usr/local/bin;
 				PRODUCT_NAME = gsi_sim;
+				SDKROOT = macosx10.9;
 			};
 			name = Release;
 		};

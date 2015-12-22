@@ -10,3 +10,10 @@ config.status
 .deps/
 close_matches_baseline.txt
 .Rproj.user
+.Rhistory
+
+# leave out some XCODE stuff that doesn't seem too relevant
+xcode/gsi_sim/gsi_sim.xcodeproj/project.xcworkspace
+xcode/gsi_sim/gsi_sim.xcodeproj/xcuserdata
+xcode/gsi_sim/bin
+
