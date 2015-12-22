@@ -41,7 +41,90 @@ replacing `Darwin` with `Linux` if you are on a Linux box.
 
 The executable files `gsi_sim-Darwin` and `gsi_sim-Linux` are provided as a courtesy, but are not guaranteed to have been compiled up from the latest commit. For that you should compile it up yourself (or see when the exectuable was last committed).
 
-## Using gsi_sim to find duplicate samples
+## Some Simple Examples
+
+### Self-assignment of baseline samples
+Using a leave-one-out procedure, take all the baseline samples and assign them back to populations at the Unix command line.
+
+```sh
+# run the analysis and stick the output in a massive text file
+ ./gsi_sim-Darwin -b test_data/snp349_baseline.txt --self-assign > dumpfile
+ 
+# grab the resulting assignments out of that huge file using some unix/Linux tools
+awk -F";" 'BEGIN {print "ID TopPop Score"} /SELF_ASSIGN_A_LA_GC_CSV:/ {print $1, $2, $3}' dumpfile | sed 's/SELF_ASSIGN_A_LA_GC_CSV:\///g;' > self-ass-results.txt 
+```
+
+After doing that we can read things into R (could have done that before, but R is not as fast as awk and sed for ripping
+through large pure text files), and tally things up by population.
+
+```r
+library(dplyr)
+library(stringr)
+
+AssignmentTally <- read.table("self-ass-results.txt", header = TRUE) %>%
+  tbl_df %>%
+  mutate(FromPop = paste(str_split_fixed(x$ID, "_", 3)[,1], str_split_fixed(x$ID, "_", 3)[,2], sep ="_")) %>%
+  group_by(FromPop, TopPop) %>%
+  tally %>%
+  arrange(FromPop, desc(n))
+```
+
+After that, `AssignmentTally` gives you many fish in the each group of the baseline were assigned to which populations. Here is
+what it looks like when you do `as.data.frame(AssignmentTally)[1:25,]`
+
+```
+      FromPop           TopPop  n
+1   F100_2014 BigQualicum_2014 83
+2   F100_2014   Puntledge_2014 10
+3   F100_2014        Inch_2006  1
+4   F100_2014     Quinsam_2014  1
+5   F103_2014    Capilano_2014 92
+6   F103_2014     Quinsam_2014  2
+7   F103_2014   Puntledge_2014  1
+8   F104_2014   Robertson_2014 94
+9   F105_2014   Puntledge_2014 85
+10  F105_2014 BigQualicum_2014  8
+11  F105_2014     Quinsam_2014  2
+12  F106_2014     Quinsam_2014 92
+13  F106_2014   Puntledge_2014  3
+14  F132_2014      Salmon_2014 34
+15 F1387_2014   Coldwater_2014 50
+16  F150_2006        Inch_2006 63
+17  F150_2006        Inch_2014  3
+18  F150_2006    Chehalis_2014  2
+19  F150_2006       Stave_2014  1
+20  F150_2014        Inch_2014  2
+21  F244_2014       Stave_2014 42
+22  F244_2014    Chehalis_2014  2
+23  F244_2014        Inch_2006  1
+24  F244_2014        Inch_2014  1
+25  M107_2014  Chilliwack_2014 93
+```
+
+### Doing MCMC to estimate mixture proportions
+Here is another simple example.  Let's say we have the baseline `test_data/snp349_baseline.txt` and the
+mixture file `test_data/snp349_baseline.txt`.  Then, to estimate the origin of each fish in the mixture
+relative to the baseline using a Bayesian approach conditioned upon the baseline samples (e.g. not trying to
+use the mixture to improve the baseline population allele frequencies), you can do like this:
+
+```sh
+ ./gsi_sim-Darwin -b test_data/snp349_baseline.txt  -t test_data/snp349_mixture.txt --mcmc-sweeps 25000 --mcmc-burnin 5000 > big_ol_output.txt 
+```
+It only takes a few seconds to do 30000 sweeps of MCMC.  Now, a few output files are produced
+```
+pop_pi_full_em_mle.txt           pop_pofz_one_step_em_mle.txt
+pop_pi_posterior_means.txt       pop_pofz_posterior_means.txt
+pop_pofz_full_em_mle.txt         pop_pofz_scaled_likelihoods.txt
+```
+"pofz" is the probability of the origin of each fish.  "pi" are the mixing proportions.  You get output both
+from applying an EM algorithm to get an MLE and MCMC to get posterior means.  Crack those files open and check them
+out.  They should be pretty self-explanatory.
+
+
+### Compute Z-score to identify fish that may be from outside the baseline populations
+Not yet written.
+
+### Using gsi_sim to find duplicate samples
 One of the ways we use `gsi_sim` in our lab is to search for samples that have identical (or
 near identical) genotypes.  Here is an example of how to do that on an example
 data set included in the repository (once again, replace `Darwin` with `Linux` if you are on a Linux box)
