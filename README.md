@@ -6,7 +6,7 @@ The command line program `gsi_sim` is designed to do two separate tasks:
 estimating the mixing proportions.  This is known in fisheries as 
 "Genetic Stock Identification" or GSI
   2. Conduct simulations of such inference to predict the power of the genetic
-markers assembled in a "genetic basline" to conduct.  
+markers assembled in a "genetic baseline".  
 
 `gsi_sim` was originally written to do #2 above, but 
 later was adopted to do  #1 as well.  
@@ -22,33 +22,31 @@ git submodule init
 git submodule update
 
 # make it
-./configure
-make
+./Compile_gsi_sim.sh
 ```
 
-If that fails, it is because I am totally lost when it comes to Autotools.  In which case, since this is
-just a single silly little C program with few dependencies, instead of doing `./configure; make` you can
-do:
-```sh
-./build_script.sh
-```
+That will compile up `gsi_sim-Darwin` on a Mac and `gsi_sim-Linux` on a Linux box.
 
-The above steps should have created the executable `gsisim`. Once you have done that. For abbreviated information on the available options do
+Once you have done that. For abbreviated information on the available options do
 ```sh
-./gsisim --help
+./gsi_sim-Darwin --help
 ```
 and for compete information, try
 ```
-./gsisim --help-full
+./gsi_sim-Darwin --help-full
 ```
+replacing `Darwin` with `Linux` if you are on a Linux box.
 
+## Executables
+
+The executable files `gsi_sim-Darwin` and `gsi_sim-Linux` are provided as a courtesy, but are not guaranteed to have been compiled up from the latest commit. For that you should compile it up yourself (or see when the exectuable was last committed).
 
 ## Using gsi_sim to find duplicate samples
 One of the ways we use `gsi_sim` in our lab is to search for samples that have identical (or
 near identical) genotypes.  Here is an example of how to do that on an example
-data set included in the repository:
+data set included in the repository (once again, replace `Darwin` with `Linux` if you are on a Linux box)
 ```
-time ./gsisim -b test_data/geno-match-example-data.txt  --close-match-base 8 70 | grep CLOSE_MATCH_GENOTYPES
+time ./gsi_sim-Darwin -b test_data/geno-match-example-data.txt  --close-match-base 8 70 | grep CLOSE_MATCH_GENOTYPES
 
 # and the output for that is :
 CLOSE_MATCH_GENOTYPES: T028958_?_10-6-2006 and T028959_?_10-6-2006 differ at 0 genotypes out of 95 non-missing loci
@@ -76,7 +74,7 @@ T028958_?_10-6-2006	T028959_?_10-6-2006	0	95
 T056350_M_9-29-2008	T056351_M_9-29-2008	0	85
 ```
 
-For more information on that do `./gsisim --help-full` and find the section on `--close-match-base`.
+For more information on that do `./gsi_sim-Darwin --help-full` and find the section on `--close-match-base`.
 
 The format of `geno-match-example-data.txt` should be pretty self evident.  It starts with the number of individuals
 and the number of loci on the first line. Then a series of locus names, one on each line, and then a 
