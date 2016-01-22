@@ -607,7 +607,7 @@ int main(int argc, char *argv[])
 							before we enter the mixture sim */
 			ComputeGeneClassSelfAssign_NOSORT(Baselines, NULL);
 		}
-		MixtureSim(INDS,NumPops, Pops, NumSimPops, SimPops, Meth, TruePi, MIXSIZE, MIXES,Baselines,FixedNums, NULL, NULL, " ");
+		MixtureSim(INDS,NumPops, Pops, NumSimPops, SimPops, Meth, TruePi, MIXSIZE, MIXES,Baselines,FixedNums, "", "", "");
 	}
 
 
