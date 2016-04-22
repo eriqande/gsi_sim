@@ -214,6 +214,9 @@ typedef struct {
 	int IndivTraceInterval; /* same as above, but for individuals.  This could be Huge output */
 	
 	int ZSumTraceInterval;  /* if 0 don't print any trace.  If 1 or more print out at that interval.  This is for the sum of the Zs */
+    
+    double *BayesPiPriors;
+    int PiPriorLength;
 	
 } BayesianOpts;
 
@@ -982,6 +985,18 @@ void ComputeGSISample_bayesian(struct IndCollection *Baselines, struct IndCollec
 		Pi[i] = init;
 		Baselines->Pi[i].pop = i;
 	}
+    /* Do some error checking here:  make sure the PiPrior is the right length if it has been invoked while setting the values if they haven't yet been set. */
+    if(BO->BayesPiPriors == NULL) {
+        int i;
+        BO->BayesPiPriors = (double *)calloc(Baselines->NumPops, sizeof(double));
+        for(i=0;i<Baselines->NumPops;i++) {
+            BO->BayesPiPriors[i] = 1.0 / (double)(Baselines->NumPops);
+        }
+    } else if(BO->PiPriorLength != Baselines->NumPops) {
+        fprintf(stderr, "Bad news buddy!  There are %d populations in the baseline and you provided %d arguments to the --bayes-pi-prior option.  Bailing!\n", Baselines->NumPops, BO->PiPriorLength);
+        exit(1);
+    }
+
 	
 	/* now, we allocate memory to the matrix of posteriors we need */
 	M = (double **)ECA_CALLOC(N,sizeof(double *));
@@ -1015,7 +1030,7 @@ void ComputeGSISample_bayesian(struct IndCollection *Baselines, struct IndCollec
 		
 		
 		for(j=0;j<P;j++) { 
-			PZ[j] = 1.0/P; /* now, we add the prior on the mixing proportions.  Currently it is just hard wired at 1/10. */
+			PZ[j] = BO->BayesPiPriors[j]; /* now, we add the prior on the mixing proportions.  This is initializing it to accumulate a sum on top of the prior.  If the user doesn't provide a prior it is just 1/num_pops */
 			ZSum[j] = 0.0;  /* this is redundant, but I want to have one that doesn't include the Pi Prior in it */
 		} 
 		for(i=0;i<N;i++) {
@@ -4000,7 +4015,8 @@ int GetGSI_Options(pop_struct **P, int argc, char *argv[], double **TruePi, int 
 		post_pred_rando_samp_ns_f=0,
 		baseline_close_matchers_f=0,
     multi_fix_f=0,
-		mixture_close_matchers_f=0;
+		mixture_close_matchers_f=0,
+        bayes_pi_prior_f=0;
 	int CurrentPop=0; 
 	DECLARE_ECA_OPT_VARS;
 
@@ -4018,6 +4034,8 @@ int GetGSI_Options(pop_struct **P, int argc, char *argv[], double **TruePi, int 
 	BO->PiTraceInterval = 0;
 	BO->IndivTraceInterval = 0;
 	BO->ZSumTraceInterval = 0;
+    BO->BayesPiPriors = NULL;  /* set to NULL to indicate that it has not been set yet */
+    BO->PiPriorLength = 0;  /* so it will be set to zero if the user does not set it */
 	*BayesOpts = BO;
 	(*PostPredNs)=NULL;
 	*NumPredPostNs=0;
@@ -4422,6 +4440,31 @@ Every population must be put into a reporting unit. The program will exit with a
 				BO->NumBurnIn = GET_INT;
 			}
 		}
+    if(OPTION(
+              bayes_pi_prior_f,
+              ,
+              bayes-pi-prior,
+              R1 R2 ... R_P,
+              Dirichlet prior weights for the mixing proportions (P = number of pops),
+              This can be used to set an informative prior on the mixing proportions when doing a Bayesian analysis.
+              It is up to the user to make sure that the values are ordered the same as the populations in the baseline file.
+              You have to supply all of them\054 and they all have to be strictly greater than 0.))  {
+        
+        if(ARGS_GT(1)){
+            int n;
+            int i;
+            n = COUNT_ARGS;
+            BO->BayesPiPriors = (double *)calloc(n, sizeof(double));
+            BO->PiPriorLength = n;
+            for(i=0;i<n;i++) {
+                BO->BayesPiPriors[i] = GET_DUB;
+                if(BO->BayesPiPriors[i] <= 0.0) {
+                    fprintf(stderr, "Arguments to bayes-pi-prior must all be >0 and %f is not!\n", BO->BayesPiPriors[i]);
+                    exit(1);
+                }
+            }
+        }
+    }
 	if(OPTION(
 			  pi_trace_interval_f,
 			  ,
